@@ -118,9 +118,17 @@ function startSelection() {
     startBtn.disabled = true;
     startBtn.textContent = '抽选进行中...';
 
-    // 显示动画
+    // 确保视频加载完成后再播放
     animationModal.classList.add('active');
-    selectionAnimation.play();
+    if (selectionAnimation.readyState >= 3) {
+        selectionAnimation.play();
+    } else {
+        selectionAnimation.load();
+        selectionAnimation.oncanplaythrough = function() {
+            selectionAnimation.play();
+            selectionAnimation.oncanplaythrough = null;
+        };
+    }
 }
 
     // 动画结束后处理
@@ -132,6 +140,7 @@ function startSelection() {
         // 隐藏动画
         animationModal.classList.remove('active');
         selectionAnimation.pause();
+        selectionAnimation.currentTime = 0;
 
         // 显示结果
         displayCandidateInfo(selectedCandidate);
