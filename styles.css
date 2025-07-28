@@ -180,11 +180,12 @@ h2::before {
 }
 
 .result-display {
-    min-height: 300px;
+    min-height: 500px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    padding: 2rem;
 }
 
 #candidate-info {
@@ -206,14 +207,14 @@ h2::before {
 }
 
 .candidate-name {
-    font-size: 3rem;
+    font-size: 4.5rem;
     font-weight: bold;
     color: var(--primary-color);
-    margin: 1rem 0;
+    margin: 1.5rem 0;
 }
 
 .candidate-details {
-    font-size: 1.2rem;
+    font-size: 1.8rem;
     color: var(--dark-gray);
     margin-top: 1rem;
 }

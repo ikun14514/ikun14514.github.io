@@ -147,6 +147,12 @@ function startSelection() {
         // 清空现有内容
         candidateInfo.innerHTML = '';
 
+        // 检查候选人数据是否存在
+        if (!candidate) {
+            candidateInfo.innerHTML = '<div class="placeholder">未找到候选人数据</div>';
+            return;
+        }
+
         // 创建信息元素
         const nameElement = document.createElement('div');
         nameElement.className = 'candidate-name';
