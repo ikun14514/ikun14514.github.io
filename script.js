@@ -13,6 +13,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const jumpToInput = document.getElementById('jump-to');
     const jumpBtn = document.getElementById('jump-btn');
     const noRepeatCheckbox = document.getElementById('no-repeat');
+    const searchWordInput = document.getElementById('search-word');
+    const searchBtn = document.getElementById('search-btn');
 
     // 初始化变量
     let words = [];
@@ -43,6 +45,55 @@ document.addEventListener('DOMContentLoaded', function() {
     wordInput.addEventListener('scroll', function() {
         lineNumbers.scrollTop = wordInput.scrollTop;
     });
+
+    // 搜索单词
+    searchBtn.addEventListener('click', function() {
+        const searchText = searchWordInput.value.trim().toLowerCase();
+        if (searchText === '') {
+            alert('请输入要搜索的单词！');
+            return;
+        }
+
+        if (words.length === 0) {
+            alert('请先加载单词！');
+            return;
+        }
+
+        // 查找匹配的单词
+        const searchIndex = words.findIndex(word => word.toLowerCase().includes(searchText));
+
+        if (searchIndex !== -1) {
+            // 找到了匹配的单词
+            currentIndex = searchIndex;
+            displayCurrentWord();
+            updateWordCounter();
+
+            // 高亮显示单词输入框中的匹配单词
+            highlightSearchTerm(searchText);
+        } else {
+            alert('未找到匹配的单词！');
+        }
+    });
+
+    // 高亮显示搜索词
+    function highlightSearchTerm(term) {
+        const text = wordInput.value;
+        const lowerText = text.toLowerCase();
+        const startIndex = lowerText.indexOf(term);
+
+        if (startIndex !== -1) {
+            const endIndex = startIndex + term.length;
+            // 保存当前的滚动位置
+            const scrollTop = wordInput.scrollTop;
+            // 选择匹配的文本
+            wordInput.setSelectionRange(startIndex, endIndex);
+            // 滚动到选中的文本
+            wordInput.scrollTop = scrollTop;
+            // 聚焦到文本框
+            wordInput.focus();
+        }
+    }
+
 
     // 初始化行号显示
     updateLineNumbers();

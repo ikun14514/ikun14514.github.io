@@ -156,11 +156,74 @@ button {
     align-items: center;
     margin: 0 10px;
     cursor: pointer;
+    position: relative;
 }
 
 #no-repeat {
-    margin-right: 5px;
-    transform: scale(1.2);
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 自定义开关样式 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 20px;
+    margin-right: 8px;
+}
+
+.switch-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.switch-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+#no-repeat:checked + .switch-slider {
+    background-color: #3498db;
+}
+
+#no-repeat:focus + .switch-slider {
+    box-shadow: 0 0 1px #3498db;
+}
+
+#no-repeat:checked + .switch-slider:before {
+    transform: translateX(20px);
+}
+
+/* 优化搜索按钮样式 */
+#search-btn {
+    background-color: #2ecc71;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(46, 204, 113, 0.3);
+}
+
+#search-btn:hover {
+    background-color: #27ae60;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(46, 204, 113, 0.4);
 }
 
 .jump-section {
@@ -168,6 +231,52 @@ button {
     display: flex;
     gap: 10px;
     align-items: center;
+}
+
+.action-section {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.jump-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex: 1;
+    min-width: 250px;
+}
+
+#search-word {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    flex: 1;
+}
+
+#search-word:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.2);
+}
+
+#search-btn {
+    padding: 10px 15px;
+    margin-right: 0;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(52, 152, 219, 0.2);
 }
 
 #jump-to {
