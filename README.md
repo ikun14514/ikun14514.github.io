@@ -4,41 +4,37 @@
 
 ## 功能特点
 - 左侧文本输入框，支持一行一个英语单词输入
+- 文本框带有行号显示功能，方便查看输入的单词行数
 - 右侧大字体显示当前单词，字体大小可自适应屏幕
 - 提供"上一个"和"下一个"按钮用于顺序导航
 - 添加了"随机抽选"功能，增强学习效果
+- 随机抽选支持"不重复"选项，确保每个单词只被抽选一次
+- 单词计数器，显示当前进度（当前单词/总单词数）
+- 支持通过输入行号跳转到对应的单词
 - 响应式设计，适配不同屏幕尺寸（桌面、平板、手机）
 - 美观的UI设计，带有平滑过渡动画和悬停效果
-- 单词计数器，显示当前进度
 - 简洁的界面，专注于单词学习
 
 ## 本地运行指南
 1. 确保你已经安装了Node.js和npm
 2. 克隆这个仓库到本地
    ```bash
-   git clone https://github.com/ikun14514/En_words_reader.git
+   git clone https://github.com/ikun14514/ikun14514.github.io.git
    ```
 3. 进入项目目录
    ```bash
-   cd En_words_reader
+   cd ikun14514.github.io
    ```
-4. 安装http-server（如果尚未安装）
+4. 使用npx serve启动本地服务器
    ```bash
-   npm install -g http-server
+   npx serve
    ```
-5. 启动本地服务器
-   ```bash
-   http-server -p 8000
-   ```
-6. 在浏览器中访问 `http://localhost:8000`
+5. 在浏览器中访问 `http://localhost:3000`
 
 ## 部署到GitHub Pages
 1. 确保你的代码已经提交到GitHub仓库
 2. 在仓库的根目录下创建一个`.github/workflows`目录
-   ```bash
-   mkdir -p .github/workflows
-   ```
-3. 创建一个名为`gh-pages.yml`的文件，内容如下：
+3. 在该目录下创建一个`deploy.yml`文件，内容如下：
    ```yaml
    name: Deploy to GitHub Pages
 
@@ -60,10 +56,10 @@
 4. 提交这个文件到GitHub
 5. 在GitHub仓库的设置中，找到"Pages"选项
 6. 在"Source"部分，选择"Deploy from a branch"，然后选择"gh-pages"分支和"/ (root)"目录，点击"Save"
-7. 等待几分钟，你的网站将部署在 `https://yourusername.github.io/En_words_reader`
+7. 等待几分钟，你的网站将部署在 `https://ikun14514.github.io/`
 
 ### 注意事项
-- 确保你的仓库名称正确，URL格式为 `https://<username>.github.io/<repository-name>`
+- 仓库名称为`ikun14514.github.io`，部署后URL为 `https://ikun14514.github.io/`
 - 首次部署可能需要等待1-2分钟才能访问
 - 如果页面无法访问，检查GitHub Actions的运行状态是否有错误
 
