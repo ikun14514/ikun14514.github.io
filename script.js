@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 设置PNG格式背景图片
-    document.body.style.backgroundImage = 'url(background1.png)';
+    // 设置图床背景图片
+    document.body.style.backgroundImage = 'url(https://picsum.photos/1920/1080)';
     // 获取DOM元素
     const wordInput = document.getElementById('word-input');
     const loadWordsBtn = document.getElementById('load-words');
