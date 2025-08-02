@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // 设置图床背景图片
-    document.body.style.backgroundImage = 'url(https://picsum.photos/1920/1080)';
+    document.body.style.backgroundImage = 'url(https://tc.z.wiki/autoupload/f/7sC8pZ0XsyqK72FYJjIW3jK4ecaMZdOc36Uq6NWA8WKyl5f0KlZfm6UsKj-HyTuv/20250803/tL5S/1200X656/background1.png)';
     // 获取DOM元素
     const wordInput = document.getElementById('word-input');
     const loadWordsBtn = document.getElementById('load-words');
