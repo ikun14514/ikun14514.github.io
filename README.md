@@ -1,7 +1,5 @@
-# English Word Reader
-
-![English Word Reader Preview](https://via.placeholder.com/800x400?text=English+Word+Reader+Preview)<!-- 替换为实际截图URL -->
-
+# English Word Reader  
+请注意！本项目内svg图片需要手动替换为实际图片，本项目内的svg图片仅作为示例，不受mit协议约束
 一个简单但实用的英语单词阅读器，帮助你学习和记忆英语单词。通过输入单词列表，你可以按顺序浏览或随机抽选单词进行学习。
 
 ## 功能特点
