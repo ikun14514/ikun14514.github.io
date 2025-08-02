@@ -14,7 +14,10 @@
         <div class="main-content">
             <div class="input-section">
                 <h2>输入单词 (一行一个)</h2>
-                <textarea id="word-input" placeholder="在这里输入单词..."></textarea>
+                <div class="textarea-container">
+                    <div id="line-numbers" class="line-numbers"></div>
+                    <textarea id="word-input" placeholder="在这里输入单词..."></textarea>
+                </div>
                 <button id="load-words">加载单词</button>
             </div>
             <div class="display-section">
@@ -23,9 +26,16 @@
                 <div class="controls">
                     <button id="prev-word">上一个</button>
                     <button id="random-word">随机抽选</button>
+                    <label for="no-repeat" class="no-repeat-label">
+                        <input type="checkbox" id="no-repeat"> 不重复
+                    </label>
                     <button id="next-word">下一个</button>
                 </div>
                 <div id="word-counter"></div>
+                <div class="jump-section">
+                    <input type="number" id="jump-to" placeholder="输入行号">
+                    <button id="jump-btn">跳转行</button>
+                </div>
             </div>
         </div>
     </div>

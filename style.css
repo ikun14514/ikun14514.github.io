@@ -73,17 +73,67 @@ h2 {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
+.textarea-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
 #word-input {
     width: 100%;
-    height: 300px;
-    padding: 15px;
+    min-height: 300px;
+    padding: 15px 15px 15px 45px;
     border: 1px solid #ddd;
     border-radius: 6px;
     font-size: 1rem;
+    line-height: 1.6;
     resize: none;
-    margin-bottom: 15px;
     transition: border 0.3s;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
+
+.textarea-container {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+#word-input {
+    width: 100%;
+    min-height: 300px;
+    padding: 15px 15px 15px 35px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1.6;
+    resize: none;
+    transition: border 0.3s;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+
+
+.line-numbers {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 30px;
+    height: 100%;
+    padding: 5px;
+    text-align: right;
+    color: #999;
+    font-family: monospace;
+    font-size: 1rem;
+    line-height: 1.6;
+    pointer-events: none;
+    background-color: #f0f0f0;
+    border-right: 1px solid #ddd;
+    border-radius: 6px 0 0 6px;
+    box-sizing: border-box;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 
 #word-input:focus {
     border-color: #3498db;
@@ -98,6 +148,45 @@ button {
     padding: 12px 20px;
     border-radius: 30px;
     cursor: pointer;
+    margin-right: 10px;
+}
+
+.no-repeat-label {
+    display: inline-flex;
+    align-items: center;
+    margin: 0 10px;
+    cursor: pointer;
+}
+
+#no-repeat {
+    margin-right: 5px;
+    transform: scale(1.2);
+}
+
+.jump-section {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+#jump-to {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    width: 100px;
+}
+
+#jump-to:focus {
+    border-color: #3498db;
+    outline: none;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.2);
+}
+
+#jump-btn {
+    padding: 10px 15px;
+    margin-right: 0;
     font-size: 1rem;
     font-weight: 500;
     transition: all 0.3s ease;
