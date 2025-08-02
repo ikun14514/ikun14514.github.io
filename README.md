@@ -1,107 +1,136 @@
-# 随机抽选答题系统
+# English Word Reader
 
-一个纯前端实现的随机抽选答题网页，支持表格上传和抽选动画效果。  
-演示：https://ikun14514.github.io/  
-觉得好用记得给颗star，球球了
+![English Word Reader Preview](https://via.placeholder.com/800x400?text=English+Word+Reader+Preview)<!-- 替换为实际截图URL -->
+
+一个简单但实用的英语单词阅读器，帮助你学习和记忆英语单词。通过输入单词列表，你可以按顺序浏览或随机抽选单词进行学习。
 
 ## 功能特点
-- 支持上传CSV、Excel表格文件
-- 随机抽选功能，抽选过程播放动画
-- 响应式设计，适配各种屏幕尺寸
-- 现代美观的UI设计
+- 左侧文本输入框，支持一行一个英语单词输入
+- 右侧大字体显示当前单词，字体大小可自适应屏幕
+- 提供"上一个"和"下一个"按钮用于顺序导航
+- 添加了"随机抽选"功能，增强学习效果
+- 响应式设计，适配不同屏幕尺寸（桌面、平板、手机）
+- 美观的UI设计，带有平滑过渡动画和悬停效果
+- 单词计数器，显示当前进度
+- 简洁的界面，专注于单词学习
 
-## 使用方法
-1. 将动画文件命名为`animation.mp4`并放在与HTML文件相同的目录下
-2. 打开`index.html`文件
-3. 点击"选择表格文件"上传包含抽选名单的表格
-4. 点击"开始抽选"按钮进行随机抽选
+## 本地运行指南
+1. 确保你已经安装了Node.js和npm
+2. 克隆这个仓库到本地
+   ```bash
+   git clone https://github.com/ikun14514/En_words_reader.git
+   ```
+3. 进入项目目录
+   ```bash
+   cd En_words_reader
+   ```
+4. 安装http-server（如果尚未安装）
+   ```bash
+   npm install -g http-server
+   ```
+5. 启动本地服务器
+   ```bash
+   http-server -p 8000
+   ```
+6. 在浏览器中访问 `http://localhost:8000`
+
+## 部署到GitHub Pages
+1. 确保你的代码已经提交到GitHub仓库
+2. 在仓库的根目录下创建一个`.github/workflows`目录
+   ```bash
+   mkdir -p .github/workflows
+   ```
+3. 创建一个名为`gh-pages.yml`的文件，内容如下：
+   ```yaml
+   name: Deploy to GitHub Pages
+
+   on:
+     push:
+       branches: [ main ]
+
+   jobs:
+     deploy:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v3
+         - name: Deploy to GitHub Pages
+           uses: peaceiris/actions-gh-pages@v3
+           with:
+             github_token: ${{ secrets.GITHUB_TOKEN }}
+             publish_dir: .
+   ```
+4. 提交这个文件到GitHub
+5. 在GitHub仓库的设置中，找到"Pages"选项
+6. 在"Source"部分，选择"Deploy from a branch"，然后选择"gh-pages"分支和"/ (root)"目录，点击"Save"
+7. 等待几分钟，你的网站将部署在 `https://yourusername.github.io/En_words_reader`
+
+### 注意事项
+- 确保你的仓库名称正确，URL格式为 `https://<username>.github.io/<repository-name>`
+- 首次部署可能需要等待1-2分钟才能访问
+- 如果页面无法访问，检查GitHub Actions的运行状态是否有错误
 
 ## 部署到Linux服务器
-1. 安装Nginx服务器:
+1. 准备一台运行Linux的服务器（如Ubuntu、CentOS等）
+2. 通过SSH连接到服务器
    ```bash
-   sudo apt update && sudo apt install nginx -y
+   ssh username@server_ip
    ```
-2. 将项目文件上传到服务器:
+3. 安装必要的软件（以Ubuntu为例）
    ```bash
-   scp -r /本地项目路径/* user@server_ip:/var/www/html/
+   sudo apt update
+   sudo apt install nginx git
    ```
-3. 设置文件权限:
+4. 克隆你的代码仓库到服务器
    ```bash
-   sudo chown -R www-data:www-data /var/www/html/
-   sudo chmod -R 755 /var/www/html/
+   git clone https://github.com/yourusername/En_words_reader.git /var/www/en_words_reader
    ```
-4. 启动Nginx服务:
+5. 配置Nginx
    ```bash
-   sudo systemctl start nginx
-   sudo systemctl enable nginx
+   sudo nano /etc/nginx/sites-available/en_words_reader
    ```
-5. 访问服务器IP即可使用系统
+6. 粘贴以下内容（根据你的域名修改）：
+   ```nginx
+   server {
+       listen 80;
+       server_name yourdomain.com www.yourdomain.com;
 
-## 部署到Node.js服务器
-1. 安装Node.js和npm:
+       root /var/www/en_words_reader;
+       index index.html;
+
+       location / {
+           try_files $uri $uri/ =404;
+       }
+   }
+   ```
+7. 保存并退出编辑器（按`Ctrl+X`，然后按`Y`，最后按`Enter`）
+8. 启用这个配置
    ```bash
-   curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-   sudo apt install nodejs -y
+   sudo ln -s /etc/nginx/sites-available/en_words_reader /etc/nginx/sites-enabled/
    ```
-2. 安装http-server:
+9. 测试Nginx配置是否正确
    ```bash
-   sudo npm install -g http-server
+   sudo nginx -t
    ```
-3. 启动服务器:
-   ```bash
-   cd /var/www/html
-   http-server -p 80 --cors
-   ```
-4. (可选) 使用PM2进行进程管理:
-   ```bash
-   sudo npm install -g pm2
-   pm2 start "http-server -p 80 --cors"
-   pm2 startup
-   ```
+10. 重启Nginx服务
+    ```bash
+    sudo systemctl restart nginx
+    ```
+11. 现在，你可以通过你的域名访问这个应用了
 
-## 表格格式要求
-表格应包含至少一列姓名信息，可以包含其他列如学号、班级等。
+### 注意事项
+- 确保服务器的防火墙已打开80端口
+- 如果你没有域名，可以使用服务器的IP地址访问
+- 为了安全性，建议配置SSL证书启用HTTPS
+- 定期更新服务器上的代码以获取最新版本
 
-### 表格格式范例
+## 技术栈
+- HTML5
+- CSS3
+- JavaScript
+- Nginx（用于Linux服务器部署）
 
-#### CSV格式（.csv）
-```csv
-姓名,年级,性别
-张三,一年级,男
-李四,一年级,女
-王五,二年级,男
-赵六,二年级,女
-钱七,三年级,男
-孙八,三年级,女
-周九,四年级,男
-吴十,四年级,女
-```
+## 贡献
+欢迎提交issue和pull request来改进这个项目。
 
-#### Excel格式（.xls/.xlsx）
-| 姓名 | 年级 | 性别 |
-|------|------|------|
-| 张三 | 一年级 | 男 |
-| 李四 | 一年级 | 女 |
-| 王五 | 二年级 | 男 |
-| 赵六 | 二年级 | 女 |
-| 钱七 | 三年级 | 男 |
-| 孙八 | 三年级 | 女 |
-| 周九 | 四年级 | 男 |
-| 吴十 | 四年级 | 女 |
-
-**注意**：第一行应为表头，系统会自动识别包含"姓名"或"name"的列作为抽选对象。其他列信息会在抽选结果中一并显示。
-
-支持的表格格式：
-- CSV (.csv)
-- Excel (.xls, .xlsx)
-
-## 文件结构
-- `index.html` - 网页主文件
-- `styles.css` - 样式表
-- `script.js` - 功能实现脚本
-- `animation.mp4` - 抽选动画视频（需用户自行提供）
-
-## 注意事项
-- 动画文件必须命名为`animation.mp4`并与网页文件放在同一目录
-- 表格文件不宜过大，建议不超过1000行数据
-- 请使用现代浏览器（Chrome、Firefox、Edge等）以获得最佳体验
+## 许可证
+这个项目使用MIT许可证 - 详情请见LICENSE文件。

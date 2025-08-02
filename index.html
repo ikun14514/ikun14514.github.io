@@ -1,77 +1,32 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机抽选答题系统</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>English Word Reader</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>随机抽选答题系统</h1>
-        </header>
-
-        <main>
-            <section class="upload-section">
-                <h2>上传抽选名单</h2>
-                <div class="upload-container">
-                    <label for="file-upload" class="file-label">
-                        <span>选择表格文件</span>
-                        <input type="file" id="file-upload" accept=".csv,.xlsx,.xls">
-                    </label>
-                    <div id="file-info"></div>
+        <h1>English Word Reader</h1>
+        <div class="main-content">
+            <div class="input-section">
+                <h2>输入单词 (一行一个)</h2>
+                <textarea id="word-input" placeholder="在这里输入单词..."></textarea>
+                <button id="load-words">加载单词</button>
+            </div>
+            <div class="display-section">
+                <h2>当前单词</h2>
+                <div id="word-display"></div>
+                <div class="controls">
+                    <button id="prev-word">上一个</button>
+                    <button id="random-word">随机抽选</button>
+                    <button id="next-word">下一个</button>
                 </div>
-            </section>
-
-            <section class="display-section">
-                <h2>当前抽选结果</h2>
-                <div class="result-display">
-                    <div id="candidate-info">
-                        <div class="placeholder">请上传表格并开始抽选</div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="filter-section">
-                <h2>筛选条件</h2>
-                <div class="filter-options">
-                    <div class="filter-group">
-                        <label for="grade-filter">年级:</label>
-                        <select id="grade-filter" class="filter-select">
-                            <option value="">全部年级</option>
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="gender-filter">性别:</label>
-                        <select id="gender-filter" class="filter-select">
-                            <option value="">全部性别</option>
-                            <option value="男">男</option>
-                            <option value="女">女</option>
-                        </select>
-                    </div>
-                </div>
-            </section>
-
-            <section class="control-section">
-                <button id="start-btn" class="btn primary-btn" disabled>开始抽选</button>
-            </section>
-        </main>
-
-        <footer>
-            <p>纯前端随机抽选系统 &copy; 2025_by魔理沙daze~</p>
-        </footer>
+                <div id="word-counter"></div>
+            </div>
+        </div>
     </div>
-
-    <!-- 抽选动画视频 -->
-    <div id="animation-modal" class="modal">
-        <video id="selection-animation" preload="auto" playsinline>
-    <source src="animation.mp4" type="video/mp4">
-    您的浏览器不支持视频播放
-</video>
-    </div>
-
     <script src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </body>
 </html>
