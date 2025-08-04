@@ -1,5 +1,96 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // 设置图床背景图片
+    // 查词功能相关DOM元素
+    const dictWordInput = document.getElementById('dict-word');
+    const lookupBtn = document.getElementById('lookup-btn');
+    const dictResult = document.getElementById('dict-result');
+
+    // 查词功能
+    lookupBtn.addEventListener('click', function() {
+        const word = dictWordInput.value.trim();
+        if (!word) {
+            showDictError('请输入要查询的单词');
+            return;
+        }
+
+        lookupWord(word);
+    });
+
+    // 回车查询
+    dictWordInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            lookupBtn.click();
+        }
+    });
+
+    // 查询单词函数
+    function lookupWord(word) {
+        // 显示加载状态
+        dictResult.innerHTML = '<div class="loading">正在查询...</div>';
+
+        // 构建API URL
+        const apiUrl = `https://cdn.jsdelivr.net/gh/lyc8503/baicizhan-word-meaning-API/data/words/${word}.json`;
+
+        // 发送请求
+        fetch(apiUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayWordInfo(data);
+            })
+            .catch(error => {
+                showDictError(`查询失败: ${error.message}`);
+            });
+    }
+
+    // 显示单词信息
+    function displayWordInfo(data) {
+        if (!data || !data.word) {
+            showDictError('未找到该单词的信息');
+            return;
+        }
+
+        const html = `
+            <div class="word-info">
+                <span class="word">${data.word}</span>
+                ${data.accent ? `<span class="accent">${data.accent}</span>` : ''}
+            </div>
+            ${data.mean_cn ? `<div class="mean_cn">${data.mean_cn}</div>` : ''}
+            ${data.mean_en ? `<div class="mean_en">${data.mean_en}</div>` : ''}
+            ${data.sentence ? `
+            <div class="sentence">${data.sentence}</div>
+            ${data.sentence_trans ? `<div class="sentence_trans">${data.sentence_trans}</div>` : ''}
+            ` : ''}
+        `;
+
+        dictResult.innerHTML = html;
+    }
+
+    // 显示错误信息
+    function showDictError(message) {
+        dictResult.innerHTML = `<div class="error">${message}</div>`;
+    }
+    // UUID生成函数
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    // UUID生成函数
+    function generateUUID() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
     document.body.style.backgroundImage = 'url(https://tc.z.wiki/autoupload/f/7sC8pZ0XsyqK72FYJjIW3jK4ecaMZdOc36Uq6NWA8WKyl5f0KlZfm6UsKj-HyTuv/20250803/tL5S/1200X656/background1.png)';
     // 获取DOM元素
     const wordInput = document.getElementById('word-input');
@@ -15,6 +106,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const noRepeatCheckbox = document.getElementById('no-repeat');
     const searchWordInput = document.getElementById('search-word');
     const searchBtn = document.getElementById('search-btn');
+    const pasteWordsBtn = document.getElementById('paste-words');
+    // 由于已删除仅显示英文功能，这里将englishOnlyCheckbox设置为null
+    const englishOnlyCheckbox = null;
+
 
     // 初始化变量
     let words = [];
@@ -98,8 +193,37 @@ document.addEventListener('DOMContentLoaded', function() {
     // 初始化行号显示
     updateLineNumbers();
 
+    // 粘贴单词功能
+    pasteWordsBtn.addEventListener('click', async function() {
+        try {
+            // 从剪贴板获取文本
+            const text = await navigator.clipboard.readText();
+            if (!text) {
+                alert('剪贴板为空！');
+                return;
+            }
+
+            // 格式化文本为一行一个单词
+            // 首先用正则表达式将所有非单词字符替换为换行符
+            let formattedText = text.replace(/[^a-zA-Z0-9\s.,!?'-]/g, ' ');
+            // 然后将连续的空白字符替换为单个换行符
+            formattedText = formattedText.replace(/\s+/g, '\n');
+            // 去除首尾空白
+            formattedText = formattedText.trim();
+
+            // 设置到文本框
+            wordInput.value = formattedText;
+            // 更新行号
+            updateLineNumbers();
+            // 自动加载单词
+            loadWords();
+        } catch (err) {
+            alert('粘贴失败: ' + err.message);
+        }
+    });
+
     // 加载单词
-    loadWordsBtn.addEventListener('click', function() {
+    function loadWords() {
         const input = wordInput.value.trim();
         if (input === '') {
             alert('请输入单词！');
@@ -107,21 +231,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 按行分割单词
-        words = input.split('\n')
+        let allWords = input.split('\n')
             .map(word => word.trim())
             .filter(word => word !== '');
 
-        if (words.length === 0) {
+        if (allWords.length === 0) {
             alert('没有找到有效的单词！');
             return;
         }
+
+        // 更新单词列表
+        words = allWords;
 
         // 重置当前索引、已用索引并显示第一个单词
         currentIndex = 0;
         usedIndices = [];
         displayCurrentWord();
         updateWordCounter();
-    });
+    }
+
+    // 加载单词按钮事件
+    loadWordsBtn.addEventListener('click', loadWords);
+
+
 
     // 显示当前单词
     function displayCurrentWord() {
@@ -194,7 +326,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // 更新单词列表为当前输入的所有有效行
-        words = validLines.map(word => word.trim()).filter(word => word !== '');
+        let newWords = validLines.map(word => word.trim()).filter(word => word !== '');
+
+
+
+        words = newWords;
 
         // 查找对应行的单词在words数组中的索引
         const lineContent = validLines[jumpTo - 1].trim();
