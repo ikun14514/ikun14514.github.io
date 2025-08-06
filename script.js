@@ -371,6 +371,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+    // 调整字体大小，确保单词在一行内显示
+    function adjustFontSize(element, text) {
+        // 设置初始字体大小
+        let fontSize = 40; // 初始字体大小(px)
+        const minFontSize = 16; // 最小字体大小(px)
+        const padding = 40; // 容器内边距(px)
+        const containerWidth = element.offsetWidth - padding;
+
+        // 创建临时元素来测量文本宽度
+        const tempElement = document.createElement('span');
+        tempElement.style.visibility = 'hidden';
+        tempElement.style.position = 'absolute';
+        tempElement.style.whiteSpace = 'nowrap';
+        tempElement.textContent = text;
+        document.body.appendChild(tempElement);
+
+        // 调整字体大小直到文本宽度小于容器宽度或达到最小字体大小
+        while (fontSize > minFontSize) {
+            tempElement.style.fontSize = fontSize + 'px';
+            if (tempElement.offsetWidth <= containerWidth) {
+                break;
+            }
+            fontSize -= 2;
+        }
+
+        // 应用计算出的字体大小
+        element.style.fontSize = fontSize + 'px';
+
+        // 移除临时元素
+        document.body.removeChild(tempElement);
+    }
+
     // 显示当前单词
     function displayCurrentWord() {
         console.log('displayCurrentWord called, words.length:', words.length);
@@ -382,10 +414,12 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Playing fun mode animation');
             playFunModeAnimation(() => {
                 wordDisplay.textContent = words[currentIndex];
+                adjustFontSize(wordDisplay, words[currentIndex]);
             });
         } else {
             // 正常模式
             wordDisplay.textContent = words[currentIndex];
+            adjustFontSize(wordDisplay, words[currentIndex]);
         }
     }
 
