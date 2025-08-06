@@ -73,23 +73,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function showDictError(message) {
         dictResult.innerHTML = `<div class="error">${message}</div>`;
     }
-    // UUID生成函数
-    function generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
-    // UUID生成函数
-    function generateUUID() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
 
     document.body.style.backgroundImage = 'url(https://tc.z.wiki/autoupload/f/7sC8pZ0XsyqK72FYJjIW3jK4ecaMZdOc36Uq6NWA8WKyl5f0KlZfm6UsKj-HyTuv/20250803/tL5S/1200X656/background1.png)';
     // 获取DOM元素
@@ -107,14 +90,147 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchWordInput = document.getElementById('search-word');
     const searchBtn = document.getElementById('search-btn');
     const pasteWordsBtn = document.getElementById('paste-words');
-    // 由于已删除仅显示英文功能，这里将englishOnlyCheckbox设置为null
-    const englishOnlyCheckbox = null;
-
-
+    
     // 初始化变量
     let words = [];
     let currentIndex = 0;
     let usedIndices = [];
+    let funMode = false;
+    let firstSquish = true;  // 用于标识是否是第一次播放
+    const funModeCheckbox = document.getElementById('fun-mode');
+
+    // 定义所有音频文件路径
+    function getLocalAudioList() {
+        return [
+            // 中文音频
+            '/audio/cn/gululu.mp3',
+            '/audio/cn/gururu.mp3',
+            '/audio/cn/要坏掉了.mp3',
+            '/audio/cn/转圈圈.mp3',
+            '/audio/cn/转圈圈咯.mp3'
+        ];
+    }
+
+    // 获取随机音频URL
+    function getRandomAudioUrl() {
+        const audioList = getLocalAudioList();
+        const randomIndex = Math.floor(Math.random() * audioList.length);
+        return audioList[randomIndex];
+    }
+
+    // 播放音频函数
+    function playKuru() {
+        let audioUrl;
+        if (firstSquish) {
+            firstSquish = false;
+            audioUrl = getLocalAudioList()[0];  // 第一次播放第一个音频
+        } else {
+            audioUrl = getRandomAudioUrl();  // 随机播放
+        }
+        
+        let audio = new Audio();
+        audio.src = audioUrl;
+        
+        // 添加错误处理
+        audio.onerror = function() {
+            console.error('音频加载失败:', audioUrl);
+        };
+        
+        audio.play().catch(error => {
+            console.error('音频播放失败:', error);
+        });
+        
+        audio.addEventListener('ended', function() {
+            this.remove();
+        });
+    }
+
+    // 趣味模式开关事件
+    funModeCheckbox.addEventListener('change', function() {
+        funMode = this.checked;
+        console.log('Fun mode changed to:', funMode);
+        // 测试GIF加载
+        if (funMode) {
+            console.log('趣味模式已开启，测试GIF加载...');
+            playFunModeAnimation(function() {
+                console.log('GIF动画测试完成');
+            });
+        }
+    });
+
+    // 趣味模式动画函数
+    function playFunModeAnimation(callback) {
+        if (!funMode) {
+            callback();
+            return;
+        }
+        
+        // 创建GIF动画元素
+        const animationElement = document.createElement('img');
+        animationElement.src = '/黑塔转圈圈.gif';
+        animationElement.style.position = 'absolute';
+        animationElement.style.height = '100%';
+        animationElement.style.width = '100%';
+        animationElement.style.objectFit = 'contain';
+        animationElement.style.opacity = '0';
+        animationElement.style.transform = 'translateX(100%) scale(0.8)';
+        animationElement.style.transition = 'all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        wordDisplay.style.position = 'relative';
+        wordDisplay.innerHTML = '';
+        wordDisplay.appendChild(animationElement);
+
+        // 添加GIF加载状态处理
+        animationElement.onload = function() {
+            console.log('GIF加载成功:', this.src);
+            
+            // 确保GIF加载完成后再开始动画和播放音频
+            // 触发重排以确保过渡效果生效
+            void animationElement.offsetWidth;
+
+            // 显示并移动动画元素
+            animationElement.style.opacity = '1';
+            animationElement.style.transform = 'translateX(0) scale(1)';
+
+            // 播放音频 - 在GIF加载完成后
+            playKuru();
+
+            // 设置GIF显示时间 (1000ms)，然后再淡出
+            setTimeout(() => {
+                animationElement.style.transition = 'all 0.8s cubic-bezier(0.165, 0.84, 0.44, 1)';
+                animationElement.style.opacity = '0';
+                animationElement.style.transform = 'translateX(-100%) scale(0.8)';
+
+                // 动画结束后执行回调
+                setTimeout(() => {
+                    wordDisplay.innerHTML = '';
+                    callback();
+                }, 800);
+            }, 1000);
+        };
+
+        animationElement.onerror = function() {
+            console.error('GIF加载失败:', this.src);
+            alert('GIF动画加载失败，请检查文件是否存在');
+            wordDisplay.innerHTML = '';
+            callback();
+        };
+
+        // 详细调试GIF加载
+        console.log('当前时间:', new Date().toLocaleTimeString());
+        console.log('尝试加载GIF:', animationElement.src);
+        console.log('GIF元素创建完成，等待加载...');
+
+        // 模拟直接加载GIF以测试
+        const testImg = new Image();
+        testImg.src = animationElement.src;
+        testImg.onload = function() {
+            console.log('测试GIF加载成功:', this.src);
+            console.log('GIF尺寸:', this.width, 'x', this.height);
+        };
+        testImg.onerror = function() {
+            console.error('测试GIF加载失败:', this.src);
+        };
+    }
 
     // 更新行号显示
     function updateLineNumbers() {
@@ -257,8 +373,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 显示当前单词
     function displayCurrentWord() {
+        console.log('displayCurrentWord called, words.length:', words.length);
         if (words.length === 0) return;
-        wordDisplay.textContent = words[currentIndex];
+        
+        console.log('Current funMode:', funMode);
+        if (funMode) {
+            // 在趣味模式下，先播放动画再显示单词
+            console.log('Playing fun mode animation');
+            playFunModeAnimation(() => {
+                wordDisplay.textContent = words[currentIndex];
+            });
+        } else {
+            // 正常模式
+            wordDisplay.textContent = words[currentIndex];
+        }
     }
 
     // 更新单词计数器
