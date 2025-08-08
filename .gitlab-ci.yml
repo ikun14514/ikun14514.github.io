@@ -1,0 +1,65 @@
+# GitLab CI/CD 配置文件
+# 此文件定义了项目的持续集成和持续部署流程
+
+stages:
+  - test
+  - build
+  - deploy
+
+# 缓存依赖，提高构建速度
+cache:
+  paths:
+    - node_modules/
+    - .npm/
+
+# 测试阶段
+test:
+  stage: test
+  image: node:18
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - echo "没有测试配置，跳过测试"
+  only:
+    - main
+    - merge_requests
+
+# 构建阶段
+build:
+  stage: build
+  image: node:18
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run build
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - main
+    - merge_requests
+
+# 部署阶段 (部署到GitLab Pages)
+deploy:
+  stage: deploy
+  image: alpine:latest
+  script:
+    - apk add --no-cache rsync
+    - mkdir -p public
+    - rsync -av --delete dist/ public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
+
+# 部署到GitHub Pages (可选)
+deploy_to_github:
+  stage: deploy
+  image: node:18
+  script:
+    - npm ci --cache .npm --prefer-offline
+    - npm run build
+    - git config --global user.email "$GITLAB_USER_EMAIL"
+    - git config --global user.name "$GITLAB_USER_NAME"
+    - npx gh-pages -d dist -r https://github.com/ikun14514/ikun14514.github.io.git -b gh-pages
+  only:
+    - main
