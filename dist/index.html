@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Word Reader</title>
+    <!-- 外部脚本已移除 -->
+  <script type="module" crossorigin src="/assets/index-DkxS-fn2.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CgYBRMI0.css">
+</head>
+<body>
+    <div class="container">
+        <h1>English Word Reader</h1>
+        <div class="dictionary-section">
+            <h3>查词功能</h3>
+            <div class="dict-input-group">
+                <input type="text" id="dict-word" placeholder="输入要查询的单词...">
+                <button id="lookup-btn">查询</button>
+            </div>
+            <div id="dict-result"></div>
+        </div>
+        <div class="main-content">
+            <div class="input-section">
+                <h2>输入单词 (一行一个)</h2>
+                <div class="textarea-container">
+                    <div id="line-numbers" class="line-numbers"></div>
+                    <textarea id="word-input" placeholder="在这里输入单词..."></textarea>
+                </div>
+                <button id="load-words">加载单词</button>
+                <button id="paste-words">粘贴单词</button>
+            </div>
+            <div class="display-section">
+                <h2>当前单词</h2>
+                <div id="word-display"></div>
+
+                <div class="controls">
+                    <button id="prev-word">上一个</button>
+                    <button id="random-word">随机抽选</button>
+                    <label for="no-repeat" class="no-repeat-label">
+                        <div class="switch">
+                            <input type="checkbox" id="no-repeat">
+                            <span class="switch-slider"></span>
+                        </div>
+                        不重复
+                    </label>
+                    <button id="next-word">下一个</button>
+                </div>
+                <div id="word-counter"></div>
+                <div class="action-section">
+                    <label for="fun-mode" class="no-repeat-label" style="display: block; margin-bottom: 10px;">
+                        <div class="switch">
+                            <input type="checkbox" id="fun-mode">
+                            <span class="switch-slider"></span>
+                        </div>
+                        趣味模式
+                    </label>
+                    <div class="jump-section">
+                        <input type="number" id="jump-to" placeholder="输入行号" min="1">
+                        <button id="jump-btn">跳转行</button>
+                    </div>
+                    <div class="search-section">
+                        <input type="text" id="search-word" placeholder="搜索单词">
+                        <button id="search-btn">搜索</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -31,11 +31,20 @@
    ```bash
    cd ikun14514.github.io
    ```
-4. 使用npx vite启动本地服务器
+4. 安装项目依赖
    ```bash
+   npm install
+   ```
+5. 启动开发服务器（两种方式）
+   - 使用npm脚本（推荐）
+     ```bash
+     npm run dev
+     ```
+   - 直接使用vite命令
+     ```bash
    npx vite --port 3000
    ```
-5. 在浏览器中访问 `http://localhost:3000`
+6. 在浏览器中访问 `http://localhost:5173`（使用npm run dev）或 `http://localhost:3000`（使用直接命令）
 
 ## 部署到GitHub Pages
 1. 确保你的代码已经提交到GitHub仓库
@@ -170,19 +179,29 @@ deploy_to_github:
    ```
 4. 克隆你的代码仓库到服务器
    ```bash
-   git clone https://github.com/yourusername/En_words_reader.git /var/www/en_words_reader
+   git clone https://github.com/ikun14514/ikun14514.github.io.git /var/www/en_words_reader
    ```
-5. 配置Nginx
+5. 进入项目目录并安装依赖
+   ```bash
+   cd /var/www/en_words_reader
+   sudo apt install nodejs npm
+   npm install
+   ```
+6. 构建生产版本
+   ```bash
+   npm run build
+   ```
+7. 配置Nginx
    ```bash
    sudo nano /etc/nginx/sites-available/en_words_reader
    ```
-6. 粘贴以下内容（根据你的域名修改）：
+8. 粘贴以下内容（根据你的域名修改）：
    ```nginx
    server {
        listen 80;
        server_name yourdomain.com www.yourdomain.com;
 
-       root /var/www/en_words_reader;
+       root /var/www/en_words_reader/dist;
        index index.html;
 
        location / {
@@ -190,27 +209,40 @@ deploy_to_github:
        }
    }
    ```
-7. 保存并退出编辑器（按`Ctrl+X`，然后按`Y`，最后按`Enter`）
-8. 启用这个配置
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/en_words_reader /etc/nginx/sites-enabled/
-   ```
-9. 测试Nginx配置是否正确
-   ```bash
-   sudo nginx -t
-   ```
-10. 重启Nginx服务
+9. 保存并退出编辑器（按`Ctrl+X`，然后按`Y`，最后按`Enter`）
+10. 启用这个配置
+    ```bash
+    sudo ln -s /etc/nginx/sites-available/en_words_reader /etc/nginx/sites-enabled/
+    ```
+11. 测试Nginx配置是否正确
+    ```bash
+    sudo nginx -t
+    ```
+12. 重启Nginx服务
     ```bash
     sudo systemctl restart nginx
     ```
-11. 现在，你可以通过你的域名访问这个应用了
+13. 配置SSL证书（使用Let's Encrypt）
+    ```bash
+    sudo apt install certbot python3-certbot-nginx
+    sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
+    ```
+14. 按照提示完成证书配置
+15. 现在，你可以通过你的域名访问这个应用了
   - 如果你没有域名，可以使用服务器的IP地址访问
-  - 为了安全性，建议配置SSL证书启用HTTPS
 
 ### 注意事项
-- 确保服务器的防火墙已打开80端口
+- 确保服务器的防火墙已打开80和443端口
 - 定期备份你的代码和数据
-- 考虑使用HTTPS加密你的网站（可通过Let's Encrypt获取免费SSL证书）
+- 定期更新服务器上的代码并重新构建
+  ```bash
+  cd /var/www/en_words_reader
+  git pull
+  npm install
+  npm run build
+  sudo systemctl reload nginx
+  ```
+- 使用HTTPS加密你的网站可以提高安全性
 
 ## 部署到阿里云OSS
 通过阿里云对象存储OSS托管静态网站，可以实现高可用性、低成本的网站托管服务。以下是详细步骤：
@@ -232,7 +264,7 @@ deploy_to_github:
 ### 步骤3：上传网站文件
 1. 在OSS控制台，进入创建的Bucket
 2. 点击"上传文件"按钮
-3. 选择本地项目中的所有文件（index.html、style.css、script.js、audio文件夹等）
+3. 选择本地项目中的dist目录下的所有文件
 4. 点击"上传文件"按钮完成上传
 
 ### 步骤4：配置静态网站托管
@@ -273,6 +305,7 @@ deploy_to_github:
 - CSS3
 - JavaScript
 - Nginx（用于Linux服务器部署）
+- Vite（构建工具）
 
 ## 贡献
 欢迎提交issue和pull request来改进这个项目。
