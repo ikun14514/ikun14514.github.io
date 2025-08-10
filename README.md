@@ -273,6 +273,3 @@ deploy_to_github:
 
 ## 贡献
 欢迎提交issue和pull request来改进这个项目。
-
-## 许可证
-这个项目使用MIT许可证 - 详情请见LICENSE文件。
