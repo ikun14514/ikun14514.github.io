@@ -133,11 +133,11 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // 添加错误处理
         audio.onerror = function() {
-            console.error('音频加载失败:', audioUrl);
+            // 音频加载失败处理
         };
         
         audio.play().catch(error => {
-            console.error('音频播放失败:', error);
+            // 音频播放失败处理
         });
         
         audio.addEventListener('ended', function() {
@@ -148,12 +148,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // 趣味模式开关事件
     funModeCheckbox.addEventListener('change', function() {
         funMode = this.checked;
-        console.log('Fun mode changed to:', funMode);
-        // 测试GIF加载
+        funMode = this.checked;
         if (funMode) {
-            console.log('趣味模式已开启，测试GIF加载...');
             playFunModeAnimation(function() {
-                console.log('GIF动画测试完成');
+                // 动画完成回调
             });
         }
     });
@@ -181,9 +179,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 添加GIF加载状态处理
         animationElement.onload = function() {
-            console.log('GIF加载成功:', this.src);
-            
-            // 确保GIF加载完成后再开始动画和播放音频
             // 触发重排以确保过渡效果生效
             void animationElement.offsetWidth;
 
@@ -209,26 +204,9 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         animationElement.onerror = function() {
-            console.error('GIF加载失败:', this.src);
             alert('GIF动画加载失败，请检查文件是否存在');
             wordDisplay.innerHTML = '';
             callback();
-        };
-
-        // 详细调试GIF加载
-        console.log('当前时间:', new Date().toLocaleTimeString());
-        console.log('尝试加载GIF:', animationElement.src);
-        console.log('GIF元素创建完成，等待加载...');
-
-        // 模拟直接加载GIF以测试
-        const testImg = new Image();
-        testImg.src = animationElement.src;
-        testImg.onload = function() {
-            console.log('测试GIF加载成功:', this.src);
-            console.log('GIF尺寸:', this.width, 'x', this.height);
-        };
-        testImg.onerror = function() {
-            console.error('测试GIF加载失败:', this.src);
         };
     }
 
@@ -405,13 +383,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 显示当前单词
     function displayCurrentWord() {
-        console.log('displayCurrentWord called, words.length:', words.length);
         if (words.length === 0) return;
         
-        console.log('Current funMode:', funMode);
         if (funMode) {
             // 在趣味模式下，先播放动画再显示单词
-            console.log('Playing fun mode animation');
             playFunModeAnimation(() => {
                 wordDisplay.textContent = words[currentIndex];
                 adjustFontSize(wordDisplay, words[currentIndex]);
