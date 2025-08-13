@@ -5,7 +5,7 @@ let usedIndices = [];
 let funMode = false;
 let firstSquish = true;
 let settings = {
-    book: 'list.json',
+    book: './list.json',
     progress: 0,
     funMode: false,
     noRepeat: false,
@@ -86,9 +86,13 @@ function updateUrlParams() {
         playInterval: settings.playInterval,
         shuffle: settings.shuffle,
         reverse: settings.reverse,
-        usedIndices: usedIndices,
-        words: words.slice(0, 50) // 限制保存的单词数量
+        usedIndices: usedIndices
     };
+    
+    // 只有在没有book参数时才保存words
+    if (!settings.book || settings.book === 'list.json') {
+        options.words = words.slice(0, 50);
+    }
     
     params.set('options', encodeURIComponent(JSON.stringify(options)));
     
@@ -113,7 +117,7 @@ function applyUrlParams() {
     }
     
     // 恢复单词列表
-    if (settings.words && settings.words.length > 0) {
+    if (settings.words && settings.words.length > 0 && !settings.book) {
         words = settings.words;
     }
     
@@ -125,14 +129,15 @@ function applyUrlParams() {
     // 自动加载词书
     if (settings.book && settings.book !== 'list.json') {
         loadCustomBook(settings.book);
-    } else if (words.length === 0) {
+    } else if (settings.book === 'list.json' || !settings.book) {
         loadVocabularyBook().then(list => {
             if (list.length > 0) {
                 words = list;
                 applyProgress();
             }
         });
-    } else {
+    } else if (settings.words && settings.words.length > 0) {
+        words = settings.words;
         applyProgress();
     }
 }
@@ -207,48 +212,86 @@ function showShareDialog() {
     const shareUrl = generateShareLink();
     
     const dialog = document.createElement('div');
+    dialog.id = 'share-modal';
     dialog.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        z-index: 1001;
-        max-width: 500px;
-        width: 90%;
-    `;
-    
-    dialog.innerHTML = `
-        <h3>分享当前进度</h3>
-        <p>复制以下链接分享你的学习进度：</p>
-        <textarea style="width: 100%; height: 100px; margin: 10px 0; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">${shareUrl}</textarea>
-        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-            <button onclick="this.parentElement.parentElement.parentElement.remove()" style="padding: 8px 16px; background: #f0f0f0; border: none; border-radius: 4px; cursor: pointer;">关闭</button>
-            <button onclick="navigator.clipboard.writeText('${shareUrl}'); this.textContent='已复制'; setTimeout(() => this.textContent='复制', 2000)" style="padding: 8px 16px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">复制</button>
-            <button onclick="addToFavorites('${shareUrl}')" style="padding: 8px 16px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer;">收藏</button>
-        </div>
-    `;
-    
-    // 添加遮罩层
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
         position: fixed;
         top: 0;
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
     `;
-    overlay.onclick = () => {
-        dialog.remove();
-        overlay.remove();
-    };
     
-    document.body.appendChild(overlay);
+    dialog.innerHTML = `
+        <div class="share-modal-content" style="
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+        ">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #333;">分享学习进度</h3>
+                <button onclick="closeShareModal()" style="
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: #999;
+                    padding: 0;
+                    width: 30px;
+                    height: 30px;
+                ">&times;</button>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <p style="margin-bottom: 10px; color: #666;">您的学习进度已保存到以下链接：</p>
+                <textarea readonly style="
+                    width: 100%;
+                    height: 100px;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    font-family: monospace;
+                    resize: vertical;
+                ">${shareUrl}</textarea>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button onclick="copyShareUrl()" style="
+                    padding: 10px 20px;
+                    background: #4CAF50;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">复制链接</button>
+                <button onclick="addToFavorites()" style="
+                    padding: 10px 20px;
+                    background: #FF9800;
+                    color: white;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">添加到收藏夹</button>
+                <button onclick="closeShareModal()" style="
+                    padding: 10px 20px;
+                    background: #f0f0f0;
+                    color: #333;
+                    border: none;
+                    border-radius: 5px;
+                    cursor: pointer;
+                ">关闭</button>
+            </div>
+        </div>
+    `;
+    
     document.body.appendChild(dialog);
     
     // 自动选中文本
@@ -256,8 +299,29 @@ function showShareDialog() {
     textarea.select();
 }
 
+function closeShareModal() {
+    const modal = document.getElementById('share-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
+
+function copyShareUrl() {
+    const textarea = document.querySelector('#share-modal textarea');
+    textarea.select();
+    document.execCommand('copy');
+    
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = '已复制！';
+    setTimeout(() => {
+        btn.textContent = originalText;
+    }, 2000);
+}
+
 // 添加到收藏夹
-function addToFavorites(url) {
+function addToFavorites() {
+    const url = generateShareLink();
     if (window.sidebar && window.sidebar.addPanel) {
         // Firefox
         window.sidebar.addPanel(document.title, url, '');
@@ -273,7 +337,7 @@ function addToFavorites(url) {
         elem.click();
     } else {
         // 其他浏览器 - 显示提示
-        showBookmarkPrompt(url);
+        showBookmarkPrompt();
     }
 }
 
@@ -281,33 +345,6 @@ function addToFavorites(url) {
 function showBookmarkPrompt() {
     const modal = document.createElement('div');
     modal.id = 'bookmark-modal';
-    modal.innerHTML = `
-        <div class="bookmark-modal-content">
-            <div class="bookmark-modal-header">
-                <h3>添加到收藏夹</h3>
-                <button class="close-btn" onclick="closeBookmarkModal()">&times;</button>
-            </div>
-            <div class="bookmark-modal-body">
-                <p>当前学习进度已保存到URL，是否添加到浏览器收藏夹？</p>
-                <div class="bookmark-url">${window.location.href}</div>
-                <div class="bookmark-buttons">
-                    <button onclick="addToFavorites()" class="bookmark-btn primary">添加到收藏夹</button>
-                    <button onclick="closeBookmarkModal()" class="bookmark-btn secondary">稍后手动收藏</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // 确保遮罩层也被正确移除
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeBookmarkModal();
-        }
-    });
-    
-    document.body.appendChild(modal);
-    
-    // 添加遮罩层样式
     modal.style.cssText = `
         position: fixed;
         top: 0;
@@ -317,10 +354,53 @@ function showBookmarkPrompt() {
         background: rgba(0, 0, 0, 0.5);
         display: flex;
         justify-content: center;
-            align-items: center;
+        align-items: center;
         z-index: 10000;
         backdrop-filter: blur(5px);
     `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        ">
+            <h3 style="margin-bottom: 15px; color: #333;">添加到收藏夹</h3>
+            <p style="margin-bottom: 20px; color: #666; line-height: 1.6;">
+                当前学习进度已保存到URL，请按以下步骤添加到浏览器收藏夹：
+            </p>
+            <div style="
+                background: #f5f5f5;
+                padding: 15px;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                font-family: monospace;
+                font-size: 12px;
+                word-break: break-all;
+            ">
+                ${window.location.href}
+            </div>
+            <div style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                <strong>快捷键：</strong><br>
+                Windows: Ctrl+D<br>
+                Mac: Cmd+D
+            </div>
+            <button onclick="closeBookmarkModal()" style="
+                padding: 10px 20px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            ">知道了</button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
 }
 
 function closeBookmarkModal() {
@@ -330,36 +410,49 @@ function closeBookmarkModal() {
     }
 }
 
+// 退出提醒相关函数
+function setupExitDetection() {
+    // 页面可见性变化
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden' && words.length > 0) {
+            updateUrlParams();
+        }
+    });
+
+    // beforeunload事件
+    window.addEventListener('beforeunload', function(e) {
+        if (words.length > 0) {
+            updateUrlParams();
+        }
+    });
+
+    // 鼠标离开顶部区域时显示提醒
+    let exitTimer;
+    document.addEventListener('mouseleave', function(e) {
+        if (e.clientY <= 0 && words.length > 0) {
+            exitTimer = setTimeout(() => {
+                showExitReminder();
+            }, 500);
+        }
+    });
+
+    document.addEventListener('mouseenter', function() {
+        if (exitTimer) {
+            clearTimeout(exitTimer);
+        }
+    });
+}
+
 function showExitReminder() {
     const reminder = document.createElement('div');
     reminder.id = 'exit-reminder';
-    reminder.innerHTML = `
-        <div class="exit-reminder-content">
-            <div class="exit-reminder-header">
-                <span>⚠️ 即将离开页面</span>
-                <button class="close-btn" onclick="closeExitReminder()">&times;</button>
-            </div>
-            <div class="exit-reminder-body">
-                <p>是否保存当前学习进度？</p>
-                <div class="exit-reminder-buttons">
-                    <button onclick="saveAndShare()" class="exit-btn primary">保存并分享</button>
-                    <button onclick="saveToUrl()" class="exit-btn secondary">仅保存到URL</button>
-                    <button onclick="closeExitReminder()" class="exit-btn tertiary">不保存</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.appendChild(reminder);
-    
-    // 设置样式
     reminder.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 0;
+        padding: 20px;
         border-radius: 12px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         z-index: 10001;
@@ -367,6 +460,56 @@ function showExitReminder() {
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.1);
     `;
+    
+    reminder.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <span style="font-weight: bold;">⚠️ 即将离开页面</span>
+            <button onclick="closeExitReminder()" style="
+                background: none;
+                border: none;
+                font-size: 20px;
+                cursor: pointer;
+                color: white;
+                padding: 0;
+                width: 25px;
+                height: 25px;
+            ">&times;</button>
+        </div>
+        <div style="margin-bottom: 15px;">
+            <p style="margin: 0 0 10px 0;">是否保存当前学习进度？</p>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button onclick="saveAndShare()" style="
+                padding: 8px 16px;
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            ">保存并分享</button>
+            <button onclick="saveToUrl()" style="
+                padding: 8px 16px;
+                background: #FF9800;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            ">仅保存</button>
+            <button onclick="closeExitReminder()" style="
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-size: 14px;
+            ">取消</button>
+        </div>
+    `;
+    
+    document.body.appendChild(reminder);
     
     // 5秒后自动关闭
     setTimeout(() => {
@@ -381,173 +524,42 @@ function closeExitReminder() {
     }
 }
 
-// 修复URL参数处理逻辑
-function parseUrlParams() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const optionsParam = urlParams.get('options');
-    
-    if (optionsParam) {
-        try {
-            const options = JSON.parse(decodeURIComponent(optionsParam));
-            
-            // 优先处理book参数，如果存在book则不使用words
-            if (options.book) {
-                settings.book = options.book;
-                settings.progress = options.progress || 0;
-                settings.funMode = options.funMode || false;
-                settings.noRepeat = options.noRepeat || false;
-                settings.fontSize = options.fontSize || 40;
-                settings.theme = options.theme || 'default';
-                settings.autoPlay = options.autoPlay || false;
-                settings.playInterval = options.playInterval || 3000;
-                settings.shuffle = options.shuffle || false;
-                settings.reverse = options.reverse || false;
-                // 不加载words参数，直接加载词书文件
-                return true;
-            } else if (options.words && Array.isArray(options.words)) {
-                // 只有没有book参数时才使用words
-                words = options.words.slice(0, 50); // 限制最多50个单词
-                currentIndex = Math.min(options.progress || 0, words.length - 1);
-                settings.funMode = options.funMode || false;
-                settings.noRepeat = options.noRepeat || false;
-                settings.fontSize = options.fontSize || 40;
-                settings.theme = options.theme || 'default';
-                settings.autoPlay = options.autoPlay || false;
-                settings.playInterval = options.playInterval || 3000;
-                settings.shuffle = options.shuffle || false;
-                settings.reverse = options.reverse || false;
-                return true;
-            }
-        } catch (e) {
-            console.error('解析URL参数失败:', e);
-        }
-    }
-    return false;
+function saveAndShare() {
+    updateUrlParams();
+    showShareDialog();
+    closeExitReminder();
 }
 
-// 确保applyUrlParams正确处理book参数
-function applyUrlParams() {
-    if (parseUrlParams()) {
-        if (settings.book) {
-            // 有book参数时，加载词书文件
-            loadCustomBook(settings.book).then(() => {
-                if (words.length > 0) {
-                    currentIndex = Math.min(settings.progress || 0, words.length - 1);
-                    updateDisplay();
-                }
-            });
-        } else {
-            // 没有book参数时，使用words参数
-            updateDisplay();
+function saveToUrl() {
+    updateUrlParams();
+    showNotification('进度已保存到URL');
+    closeExitReminder();
+}
+
+// 自动保存
+function startAutoSave() {
+    setInterval(() => {
+        if (words.length > 0) {
+            updateUrlParams();
         }
+    }, 5000);
+}
+
+// 加载词汇
+async function loadVocabularyBook() {
+    try {
+        const response = await fetch('./list.json');
+        if (!response.ok) throw new Error('无法加载词书');
+        
+        const data = await response.json();
+        return data.list || data.words || data || [];
+    } catch (error) {
+        console.warn('加载词书失败:', error);
+        return [];
     }
 }
 
-// 更新updateUrlParams确保正确处理book参数
-function updateUrlParams() {
-    const options = {
-        book: settings.book || undefined, // 如果设置了book，优先使用book
-        progress: currentIndex,
-        funMode: settings.funMode,
-        noRepeat: settings.noRepeat,
-        fontSize: settings.fontSize,
-        theme: settings.theme,
-        autoPlay: settings.autoPlay,
-        playInterval: settings.playInterval,
-        shuffle: settings.shuffle,
-        reverse: settings.reverse
-    };
-    
-    // 如果当前使用的是自定义words而不是book，才添加words参数
-    if (!settings.book && words.length > 0) {
-        options.words = words.slice(0, 50);
-    }
-    
-    // 移除undefined的字段
-    Object.keys(options).forEach(key => {
-        if (options[key] === undefined) {
-            delete options[key];
-        }
-    });
-    
-    const url = new URL(window.location);
-    url.searchParams.set('options', encodeURIComponent(JSON.stringify(options)));
-    window.history.replaceState({}, '', url);
-}
-
-// 修复分享对话框的关闭功能
-function showShareDialog() {
-    const shareUrl = window.location.href;
-    
-    const modal = document.createElement('div');
-    modal.id = 'share-modal';
-    modal.innerHTML = `
-        <div class="share-modal-content">
-            <div class="share-modal-header">
-                <h3>分享学习进度</h3>
-                <button class="close-btn" onclick="closeShareModal()">&times;</button>
-            </div>
-            <div class="share-modal-body">
-                <p>您的学习进度已保存到以下链接：</p>
-                <textarea readonly class="share-url">${shareUrl}</textarea>
-                <div class="share-buttons">
-                    <button onclick="copyShareUrl()" class="share-btn primary">复制链接</button>
-                    <button onclick="addToFavorites()" class="share-btn secondary">添加到收藏夹</button>
-                    <button onclick="closeShareModal()" class="share-btn tertiary">关闭</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // 添加遮罩层关闭功能
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeShareModal();
-        }
-    });
-    
-    document.body.appendChild(modal);
-    
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        backdrop-filter: blur(5px);
-    `;
-}
-
-function closeShareModal() {
-    const modal = document.getElementById('share-modal');
-    if (modal) {
-        modal.remove();
-    }
-}
-
-function copyShareUrl() {
-    const textarea = document.querySelector('.share-url');
-    textarea.select();
-    document.execCommand('copy');
-    
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = '已复制！';
-    setTimeout(() => {
-        btn.textContent = originalText;
-    }, 2000);
-}
-
-// 确保所有关闭函数都正确移除遮罩层
-window.closeBookmarkModal = closeBookmarkModal;
-window.closeExitReminder = closeExitReminder;
-window.closeShareModal = closeShareModal;
-
+// 显示当前单词
 function displayCurrentWord() {
     const elements = getElements();
     if (!elements.wordDisplay || words.length === 0) return;
@@ -558,7 +570,6 @@ function displayCurrentWord() {
     }
     
     if (settings.shuffle) {
-        // 随机模式下使用不同逻辑
         displayIndex = Math.floor(Math.random() * words.length);
     }
     
@@ -574,7 +585,6 @@ function displayCurrentWord() {
         adjustFontSize(elements.wordDisplay, wordToDisplay);
     }
     
-    // 自动播放
     if (settings.autoPlay) {
         setTimeout(() => {
             if (currentIndex < words.length - 1) {
@@ -585,6 +595,37 @@ function displayCurrentWord() {
             }
         }, settings.playInterval);
     }
+}
+
+// 调整字体大小
+function adjustFontSize(element, text) {
+    const baseSize = settings.fontSize;
+    const length = text.length;
+    let fontSize = baseSize;
+    
+    if (length > 10) {
+        fontSize = Math.max(20, baseSize - (length - 10) * 2);
+    }
+    
+    element.style.fontSize = fontSize + 'px';
+}
+
+// 更新单词计数器
+function updateWordCounter() {
+    const elements = getElements();
+    if (elements.wordCounter && words.length > 0) {
+        elements.wordCounter.textContent = `${currentIndex + 1} / ${words.length}`;
+    }
+}
+
+// 更新行号
+function updateLineNumbers() {
+    const elements = getElements();
+    if (!elements.lineNumbers || !elements.wordInput) return;
+    
+    const lines = elements.wordInput.value.split('\n');
+    const lineNumbersText = lines.map((_, i) => i + 1).join('\n');
+    elements.lineNumbers.textContent = lineNumbersText;
 }
 
 // 显示通知
@@ -808,40 +849,219 @@ function displayWordInfo(data) {
 }
 
 // 初始化
-    document.addEventListener('DOMContentLoaded', function() {
-        const elements = getElements();
-        
-        // 设置背景
-        document.body.style.backgroundImage = 'url(https://tc.z.wiki/autoupload/f/7sC8pZ0XsyqK72FYJjIW3jK4ecaMZdOc36Uq6NWA8WKyl5f0KlZfm6UsKj-HyTuv/20250803/tL5S/1200X656/background1.png)';
-        
-        // 初始化事件监听
-        if (elements.dictWordInput && elements.lookupBtn) {
-            elements.lookupBtn.addEventListener('click', () => {
-                const word = elements.dictWordInput.value.trim();
-                if (word) lookupWord(word);
-            });
-            elements.dictWordInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') elements.lookupBtn.click();
-            });
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    const elements = getElements();
+    
+    // 设置背景
+    document.body.style.backgroundImage = 'url(https://tc.z.wiki/autoupload/f/7sC8pZ0XsyqK72FYJjIW3jK4ecaMZdOc36Uq6NWA8WKyl5f0KlZfm6UsKj-HyTuv/20250803/tL5S/1200X656/background1.png)';
+    
+    // 初始化事件监听
+    if (elements.dictWordInput && elements.lookupBtn) {
+        elements.lookupBtn.addEventListener('click', () => {
+            const word = elements.dictWordInput.value.trim();
+            if (word) lookupWord(word);
+        });
+        elements.dictWordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') elements.lookupBtn.click();
+        });
+    }
 
-        // 添加加载词书按钮
-        const loadVocabularyBtn = document.createElement('button');
-        loadVocabularyBtn.id = 'load-vocabulary';
-        loadVocabularyBtn.textContent = '加载词书';
-        loadVocabularyBtn.title = '从list.json加载词书';
-        
-        const loadWordsBtn = document.getElementById('load-words');
-        if (loadWordsBtn) {
-            loadWordsBtn.parentNode.insertBefore(loadVocabularyBtn, loadWordsBtn.nextSibling);
-        }
+    // 添加加载词书按钮
+    const loadVocabularyBtn = document.createElement('button');
+    loadVocabularyBtn.id = 'load-vocabulary';
+    loadVocabularyBtn.textContent = '加载词书';
+    loadVocabularyBtn.title = '从list.json加载词书';
+    
+    const loadWordsBtn = document.getElementById('load-words');
+    if (loadWordsBtn) {
+        loadWordsBtn.parentNode.insertBefore(loadVocabularyBtn, loadWordsBtn.nextSibling);
+    }
 
-        // 添加分享按钮
-        const shareBtn = document.createElement('button');
-        shareBtn.id = 'share-progress';
-        shareBtn.textContent = '分享进度';
-        shareBtn.title = '生成分享链接';
-        shareBtn.style.cssText = `
+    // 添加分享按钮
+    const shareBtn = document.createElement('button');
+    shareBtn.id = 'share-progress';
+    shareBtn.textContent = '分享进度';
+    shareBtn.title = '生成分享链接';
+    shareBtn.style.cssText = `
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-left: 10px;
+    `;
+    
+    if (loadVocabularyBtn) {
+        loadVocabularyBtn.parentNode.insertBefore(shareBtn, loadVocabularyBtn.nextSibling);
+    }
+
+    // 分享按钮事件
+    shareBtn.addEventListener('click', showShareDialog);
+
+    // 加载词书事件
+    loadVocabularyBtn.addEventListener('click', async function() {
+        loadVocabularyBtn.textContent = '加载中...';
+        loadVocabularyBtn.disabled = true;
+        
+        try {
+            const vocabularyList = await loadVocabularyBook();
+            if (vocabularyList.length > 0) {
+                words = vocabularyList;
+                currentIndex = 0;
+                usedIndices = [];
+                
+                if (elements.wordInput) {
+                    elements.wordInput.value = words.join('\n');
+                    updateLineNumbers();
+                }
+                displayCurrentWord();
+                updateWordCounter();
+                
+                showNotification(`成功加载 ${words.length} 个单词`);
+            } else {
+                showNotification('词书为空或加载失败', 'error');
+            }
+        } catch (error) {
+            showNotification('加载词书失败: ' + error.message, 'error');
+        } finally {
+            loadVocabularyBtn.textContent = '加载词书';
+            loadVocabularyBtn.disabled = false;
+        }
+    });
+
+    // 其他事件监听
+    if (elements.loadWordsBtn) elements.loadWordsBtn.addEventListener('click', loadWords);
+    if (elements.prevWordBtn) elements.prevWordBtn.addEventListener('click', () => {
+        if (words.length === 0) return;
+        currentIndex = (currentIndex - 1 + words.length) % words.length;
+        displayCurrentWord();
+        updateWordCounter();
+        updateUrlParams();
+    });
+    
+    if (elements.nextWordBtn) elements.nextWordBtn.addEventListener('click', () => {
+        if (words.length === 0) return;
+        currentIndex = (currentIndex + 1) % words.length;
+        displayCurrentWord();
+        updateWordCounter();
+        updateUrlParams();
+    });
+    
+    if (elements.randomWordBtn) elements.randomWordBtn.addEventListener('click', () => {
+        if (words.length === 0) return;
+        
+        if (elements.noRepeatCheckbox && elements.noRepeatCheckbox.checked) {
+            if (usedIndices.length >= words.length) {
+                alert('所有单词都已抽选过！');
+                return;
+            }
+            let randomIndex;
+            do {
+                randomIndex = Math.floor(Math.random() * words.length);
+            } while (usedIndices.includes(randomIndex));
+            usedIndices.push(randomIndex);
+            currentIndex = randomIndex;
+        } else {
+            const randomIndex = Math.floor(Math.random() * words.length);
+            currentIndex = randomIndex;
+        }
+        
+        displayCurrentWord();
+        updateWordCounter();
+        updateUrlParams();
+    });
+
+    if (elements.funModeCheckbox) {
+        elements.funModeCheckbox.addEventListener('change', function() {
+            funMode = this.checked;
+            updateUrlParams();
+        });
+    }
+
+    if (elements.noRepeatCheckbox) {
+        elements.noRepeatCheckbox.addEventListener('change', function() {
+            settings.noRepeat = this.checked;
+            updateUrlParams();
+        });
+    }
+
+    if (elements.pasteWordsBtn) {
+        elements.pasteWordsBtn.addEventListener('click', async function() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) {
+                    alert('剪贴板为空！');
+                    return;
+                }
+                
+                let formattedText = text.replace(/[^a-zA-Z0-9\s.,!?'-]/g, ' ');
+                formattedText = formattedText.replace(/\s+/g, '\n');
+                formattedText = formattedText.trim();
+                
+                if (elements.wordInput) {
+                    elements.wordInput.value = formattedText;
+                    updateLineNumbers();
+                }
+                loadWords();
+            } catch (err) {
+                alert('粘贴失败: ' + err.message);
+            }
+        });
+    }
+
+    // 初始化
+    updateLineNumbers();
+    if (elements.wordInput) {
+        elements.wordInput.addEventListener('input', updateLineNumbers);
+        elements.wordInput.addEventListener('scroll', () => {
+            const elements = getElements();
+            if (elements.lineNumbers) {
+                elements.lineNumbers.scrollTop = elements.wordInput.scrollTop;
+            }
+        });
+    }
+
+    // 设置退出侦测
+    setupExitDetection();
+
+    // 应用URL参数
+    applyUrlParams();
+
+    // 启动自动保存
+    startAutoSave();
+
+    // 添加样式
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        #load-vocabulary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-left: 10px;
+        }
+        #load-vocabulary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #load-vocabulary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        #share-progress {
             background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
             color: white;
             border: none;
@@ -850,283 +1070,104 @@ function displayWordInfo(data) {
             cursor: pointer;
             transition: all 0.3s ease;
             margin-left: 10px;
-        `;
-        
-        if (loadVocabularyBtn) {
-            loadVocabularyBtn.parentNode.insertBefore(shareBtn, loadVocabularyBtn.nextSibling);
         }
-
-        // 分享按钮事件
-        shareBtn.addEventListener('click', showShareDialog);
-
-        // 加载词书事件
-        loadVocabularyBtn.addEventListener('click', async function() {
-            loadVocabularyBtn.textContent = '加载中...';
-            loadVocabularyBtn.disabled = true;
-            
-            try {
-                const vocabularyList = await loadVocabularyBook();
-                if (vocabularyList.length > 0) {
-                    words = vocabularyList;
-                    currentIndex = 0;
-                    usedIndices = [];
-                    
-                    if (elements.wordInput) {
-                        elements.wordInput.value = words.join('\n');
-                        updateLineNumbers();
-                    }
-                    displayCurrentWord();
-                    updateWordCounter();
-                    
-                    showNotification(`成功加载 ${words.length} 个单词`);
-                } else {
-                    showNotification('词书为空或加载失败', 'error');
-                }
-            } catch (error) {
-                showNotification('加载词书失败: ' + error.message, 'error');
-            } finally {
-                loadVocabularyBtn.textContent = '加载词书';
-                loadVocabularyBtn.disabled = false;
-            }
-        });
-
-        // 其他事件监听
-        if (elements.loadWordsBtn) elements.loadWordsBtn.addEventListener('click', loadWords);
-        if (elements.prevWordBtn) elements.prevWordBtn.addEventListener('click', () => {
-            if (words.length === 0) return;
-            currentIndex = (currentIndex - 1 + words.length) % words.length;
-            displayCurrentWord();
-            updateWordCounter();
-            updateUrlParams();
-        });
-        
-        if (elements.nextWordBtn) elements.nextWordBtn.addEventListener('click', () => {
-            if (words.length === 0) return;
-            currentIndex = (currentIndex + 1) % words.length;
-            displayCurrentWord();
-            updateWordCounter();
-            updateUrlParams();
-        });
-        
-        if (elements.randomWordBtn) elements.randomWordBtn.addEventListener('click', () => {
-            if (words.length === 0) return;
-            
-            if (elements.noRepeatCheckbox && elements.noRepeatCheckbox.checked) {
-                if (usedIndices.length >= words.length) {
-                    alert('所有单词都已抽选过！');
-                    return;
-                }
-                let randomIndex;
-                do {
-                    randomIndex = Math.floor(Math.random() * words.length);
-                } while (usedIndices.includes(randomIndex));
-                usedIndices.push(randomIndex);
-                currentIndex = randomIndex;
-            } else {
-                const randomIndex = Math.floor(Math.random() * words.length);
-                currentIndex = randomIndex;
-            }
-            
-            displayCurrentWord();
-            updateWordCounter();
-            updateUrlParams();
-        });
-
-        if (elements.funModeCheckbox) {
-            elements.funModeCheckbox.addEventListener('change', function() {
-                funMode = this.checked;
-                updateUrlParams();
-            });
+        #share-progress:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
-
-        if (elements.noRepeatCheckbox) {
-            elements.noRepeatCheckbox.addEventListener('change', function() {
-                settings.noRepeat = this.checked;
-                updateUrlParams();
-            });
+        /* 查词结果样式 */
+        .word-info {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
-
-        if (elements.pasteWordsBtn) {
-            elements.pasteWordsBtn.addEventListener('click', async function() {
-                try {
-                    const text = await navigator.clipboard.readText();
-                    if (!text) {
-                        alert('剪贴板为空！');
-                        return;
-                    }
-                    
-                    let formattedText = text.replace(/[^a-zA-Z0-9\s.,!?'-]/g, ' ');
-                    formattedText = formattedText.replace(/\s+/g, '\n');
-                    formattedText = formattedText.trim();
-                    
-                    if (elements.wordInput) {
-                        elements.wordInput.value = formattedText;
-                        updateLineNumbers();
-                    }
-                    loadWords();
-                } catch (err) {
-                    alert('粘贴失败: ' + err.message);
-                }
-            });
+        .word {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-right: 10px;
         }
-
-        // 初始化
-        updateLineNumbers();
-        if (elements.wordInput) {
-            elements.wordInput.addEventListener('input', updateLineNumbers);
-            elements.wordInput.addEventListener('scroll', () => {
-                const elements = getElements();
-                if (elements.lineNumbers) {
-                    elements.lineNumbers.scrollTop = elements.wordInput.scrollTop;
-                }
-            });
+        .accent {
+            font-size: 18px;
+            color: #666;
+            font-family: 'Courier New', monospace;
         }
-
-        // 设置退出侦测
-        setupExitDetection();
-
-        // 应用URL参数
-        applyUrlParams();
-
-        // 启动自动保存
-        startAutoSave();
-
-        // 添加样式
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOut {
-                from { transform: translateX(0); opacity: 1; }
-                to { transform: translateX(100%); opacity: 0; }
-            }
-            #load-vocabulary {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                margin-left: 10px;
-            }
-            #load-vocabulary:hover:not(:disabled) {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            }
-            #load-vocabulary:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
-            #share-progress {
-                background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: all 0.3s ease;
-                margin-left: 10px;
-            }
-            #share-progress:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            }
-            /* 查词结果样式 */
-            .word-info {
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-                border-bottom: 1px solid #eee;
-            }
-            .word {
-                font-size: 24px;
-                font-weight: bold;
-                color: #333;
-                margin-right: 10px;
-            }
-            .accent {
-                font-size: 18px;
-                color: #666;
-                font-family: 'Courier New', monospace;
-            }
-            .mean_cn, .mean_en {
-                margin: 10px 0;
-                line-height: 1.6;
-            }
-            .mean_cn {
-                color: #d9534f;
-                font-size: 16px;
-            }
-            .mean_en {
-                color: #5cb85c;
-                font-size: 15px;
-            }
-            .sentence-section {
-                margin: 15px 0;
-                padding: 10px;
-                background-color: #f9f9f9;
-                border-left: 4px solid #5bc0de;
-                border-radius: 4px;
-            }
-            .sentence {
-                color: #333;
-                font-style: italic;
-                margin-bottom: 5px;
-            }
-            .sentence_trans {
-                color: #666;
-                font-size: 14px;
-            }
-            .sentence_phrase {
-                color: #8a6d3b;
-                font-size: 14px;
-                margin-top: 5px;
-            }
-            .word_etyma {
-                margin: 10px 0;
-                color: #8a6d3b;
-                font-size: 14px;
-            }
-            .cloze-section {
-                margin: 15px 0;
-                padding: 10px;
-                background-color: #f0f8ff;
-                border: 1px solid #bce8f1;
-                border-radius: 4px;
-            }
-            .syllable {
-                color: #31708f;
-                margin-bottom: 5px;
-            }
-            .cloze {
-                color: #333;
-                font-family: 'Courier New', monospace;
-                margin-bottom: 5px;
-            }
-            .options {
-                color: #31708f;
-                margin-bottom: 5px;
-            }
-            .tips {
-                margin-top: 10px;
-            }
-            .tip {
-                color: #8a6d3b;
-                font-size: 13px;
-                margin: 2px 0;
-            }
-            .loading {
-                text-align: center;
-                color: #666;
-                padding: 20px;
-            }
-            .error {
-                color: #d9534f;
-                padding: 10px;
-                text-align: center;
-            }
-        `;
-        document.head.appendChild(style);
-    });
+        .mean_cn, .mean_en {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+        .mean_cn {
+            color: #d9534f;
+            font-size: 16px;
+        }
+        .mean_en {
+            color: #5cb85c;
+            font-size: 15px;
+        }
+        .sentence-section {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #5bc0de;
+            border-radius: 4px;
+        }
+        .sentence {
+            color: #333;
+            font-style: italic;
+            margin-bottom: 5px;
+        }
+        .sentence_trans {
+            color: #666;
+            font-size: 14px;
+        }
+        .sentence_phrase {
+            color: #8a6d3b;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .word_etyma {
+            margin: 10px 0;
+            color: #8a6d3b;
+            font-size: 14px;
+        }
+        .cloze-section {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f0f8ff;
+            border: 1px solid #bce8f1;
+            border-radius: 4px;
+        }
+        .syllable {
+            color: #31708f;
+            margin-bottom: 5px;
+        }
+        .cloze {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 5px;
+        }
+        .options {
+            color: #31708f;
+            margin-bottom: 5px;
+        }
+        .tips {
+            margin-top: 10px;
+        }
+        .tip {
+            color: #8a6d3b;
+            font-size: 13px;
+            margin: 2px 0;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+        }
+        .error {
+            color: #d9534f;
+            padding: 10px;
+            text-align: center;
+        }
+    `;
+    document.head.appendChild(style);
+});
