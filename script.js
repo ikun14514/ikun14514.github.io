@@ -17,6 +17,20 @@ let settings = {
     reverse: false
 };
 
+// 默认设置
+const defaultSettings = {
+    book: './list.json',
+    progress: 0,
+    funMode: false,
+    noRepeat: false,
+    fontSize: 40,
+    theme: 'default',
+    autoPlay: false,
+    playInterval: 3000,
+    shuffle: false,
+    reverse: false
+};
+
 // 获取DOM元素的函数
 function getElements() {
     return {
@@ -102,11 +116,21 @@ function updateUrlParams() {
 }
 
 // 应用URL参数
-function applyUrlParams() {
-    const params = parseUrlParams();
+async function applyUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const optionsParam = urlParams.get('options');
     
-    // 合并设置
-    Object.assign(settings, params);
+    if (optionsParam) {
+        try {
+            const parsedOptions = JSON.parse(decodeURIComponent(optionsParam));
+            settings = { ...defaultSettings, ...parsedOptions };
+        } catch (error) {
+            console.error('解析URL参数失败:', error);
+            settings = { ...defaultSettings };
+        }
+    } else {
+        settings = { ...defaultSettings };
+    }
     
     // 应用设置
     funMode = settings.funMode;
@@ -126,19 +150,25 @@ function applyUrlParams() {
     if (elements.funModeCheckbox) elements.funModeCheckbox.checked = funMode;
     if (elements.noRepeatCheckbox) elements.noRepeatCheckbox.checked = settings.noRepeat;
     
-    // 自动加载词书
+    // 处理URL参数中的自定义词书或单词
     if (settings.book && settings.book !== 'list.json') {
-        loadCustomBook(settings.book);
-    } else if (settings.book === 'list.json' || !settings.book) {
-        loadVocabularyBook().then(list => {
-            if (list.length > 0) {
-                words = list;
-                applyProgress();
-            }
-        });
+        await loadCustomBook(settings.book);
     } else if (settings.words && settings.words.length > 0) {
         words = settings.words;
         applyProgress();
+    } else {
+        // 默认加载list.json词书
+        try {
+            const vocabularyData = await loadVocabularyBook();
+            if (vocabularyData && vocabularyData.list && vocabularyData.list.length > 0) {
+                words = vocabularyData.list;
+                applyProgress();
+                showNotification(`已加载 ${words.length} 个单词`);
+            }
+        } catch (error) {
+            console.error('加载默认词书失败:', error);
+            showNotification('加载默认词书失败，请手动加载', 'error');
+        }
     }
 }
 
@@ -618,17 +648,19 @@ function updateWordCounter() {
     }
 }
 
-// 更新行号功能，确保同步滚动
+// 更新行号功能，使用div元素格式显示
 function updateLineNumbers() {
     const elements = getElements();
     if (!elements.lineNumbers || !elements.wordInput) return;
     
     const lines = elements.wordInput.value.split('\n');
-    const lineNumbersText = lines.map((_, i) => i + 1).join('\n');
-    elements.lineNumbers.textContent = lineNumbersText;
+    let lineNumbersHtml = '';
     
-    // 同步滚动
-    elements.lineNumbers.scrollTop = elements.wordInput.scrollTop;
+    for (let i = 0; i < lines.length; i++) {
+        lineNumbersHtml += '<div>' + (i + 1) + '</div>';
+    }
+    
+    elements.lineNumbers.innerHTML = lineNumbersHtml;
 }
 
 // 添加更好的行号同步滚动功能

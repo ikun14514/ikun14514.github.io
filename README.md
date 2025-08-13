@@ -120,7 +120,3 @@ http://localhost:8000/?options={"book":"list.json","progress":10,"funMode":true}
 ## 🤝 贡献
 
 欢迎提交Issue和Pull Request来改进这个工具！
-
-## 📄 许可证
-
-MIT License - 详见LICENSE文件
