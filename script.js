@@ -618,7 +618,7 @@ function updateWordCounter() {
     }
 }
 
-// 更新行号
+// 更新行号功能，确保同步滚动
 function updateLineNumbers() {
     const elements = getElements();
     if (!elements.lineNumbers || !elements.wordInput) return;
@@ -626,6 +626,17 @@ function updateLineNumbers() {
     const lines = elements.wordInput.value.split('\n');
     const lineNumbersText = lines.map((_, i) => i + 1).join('\n');
     elements.lineNumbers.textContent = lineNumbersText;
+    
+    // 同步滚动
+    elements.lineNumbers.scrollTop = elements.wordInput.scrollTop;
+}
+
+// 添加更好的行号同步滚动功能
+function syncScroll() {
+    const elements = getElements();
+    if (!elements.lineNumbers || !elements.wordInput) return;
+    
+    elements.lineNumbers.scrollTop = elements.wordInput.scrollTop;
 }
 
 // 显示通知
