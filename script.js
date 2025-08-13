@@ -294,7 +294,7 @@ function showShareDialog() {
                 ">${shareUrl}</textarea>
             </div>
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                <button onclick="copyShareUrl()" style="
+                <button onclick="copyShareUrl(this)" style="
                     padding: 10px 20px;
                     background: #4CAF50;
                     color: white;
@@ -326,7 +326,16 @@ function showShareDialog() {
     
     // 自动选中文本
     const textarea = dialog.querySelector('textarea');
-    textarea.select();
+    if (textarea) {
+        textarea.select();
+    }
+    
+    // 点击背景关闭对话框
+    dialog.addEventListener('click', function(e) {
+        if (e.target === dialog) {
+            closeShareModal();
+        }
+    });
 }
 
 function closeShareModal() {
@@ -336,17 +345,37 @@ function closeShareModal() {
     }
 }
 
-function copyShareUrl() {
-    const textarea = document.querySelector('#share-modal textarea');
-    textarea.select();
-    document.execCommand('copy');
+function copyShareUrl(button) {
+    const modal = document.getElementById('share-modal');
+    if (!modal) return;
     
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.textContent = '已复制！';
-    setTimeout(() => {
-        btn.textContent = originalText;
-    }, 2000);
+    const textarea = modal.querySelector('textarea');
+    if (!textarea) return;
+    
+    textarea.select();
+    textarea.setSelectionRange(0, 99999); // 移动设备兼容
+    
+    try {
+        document.execCommand('copy');
+        
+        const originalText = button.textContent;
+        button.textContent = '已复制！';
+        button.style.background = '#4CAF50';
+        
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.style.background = '#4CAF50';
+        }, 2000);
+    } catch (err) {
+        console.error('复制失败:', err);
+        button.textContent = '复制失败';
+        button.style.background = '#f44336';
+        
+        setTimeout(() => {
+            button.textContent = '复制链接';
+            button.style.background = '#4CAF50';
+        }, 2000);
+    }
 }
 
 // 添加到收藏夹
